@@ -1,0 +1,99 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# 1. SETTINGS & REPRODUCIBILITY
+
+np.random.seed(42)
+sns.set_theme(style="whitegrid")
+
+
+# 2. THE NON-LINEAR IRBI ALGORITHM
+
+def calculate_irbi_geometric(iif_norm, ibief_raw, alpha=0.5, beta=0.5):
+    """
+    Calculates the Illusion-Real Biomimicry Index (IRBI).
+    Employs a non-compensatory geometric aggregation with a Heaviside veto mechanism.
+    """
+    ibief_norm = ibief_raw / 100.0  
+    
+    # Heaviside step function: Veto if divergence >= 0.75
+    H = 1.0 if (0.75 - iif_norm) > 0 else 0.0
+    
+    if H == 0:
+        return 0.0
+        
+    # Non-linear Geometric synthesis
+    irbi = H * ((1 - iif_norm)**alpha) * (ibief_norm**beta)
+    return irbi
+
+
+# 3. DATASET: HARDWARE-IN-THE-LOOP SCENARIOS
+
+data = {
+    'Case': ['Scenario A: Syntropy/Stable Attractor', 
+             'Scenario B: Fatigue/Compensatory Stiffening', 
+             'Scenario C: Illusion/Greenwashing'],
+    'IIF_Score': [0.10, 0.15, 0.85],
+    'IBIEF_Score': [94.0, 2.6, 96.0] 
+}
+df = pd.DataFrame(data)
+
+# Calculate Fixed IRBI (Standard weights a=0.5, b=0.5)
+df['IRBI_Fixed'] = df.apply(lambda x: calculate_irbi_geometric(x['IIF_Score'], x['IBIEF_Score']), axis=1)
+
+
+# 4. MONTE CARLO SENSITIVITY ANALYSIS (n=1000)
+
+n_iterations = 1000
+simulation_results = []
+
+for i, row in df.iterrows():
+    case_sims = []
+    for _ in range(n_iterations):
+        # Fixed weights (as per paper: "Rather than varying theoretical weights...")
+        a, b = 0.5, 0.5
+        
+        # Injecting stochastic GAUSSIAN noise into raw signals (sensor jitter emulation)
+        iif_noise = np.clip(row['IIF_Score'] + np.random.normal(0, 0.015), 0, 1)
+        ibief_noise = np.clip(row['IBIEF_Score'] + np.random.normal(0, 1.5), 0, 100)
+        
+        sim_val = calculate_irbi_geometric(iif_noise, ibief_noise, alpha=a, beta=b)
+        case_sims.append(sim_val)
+        
+    simulation_results.append(case_sims)
+
+# Convert to DataFrame
+sim_df = pd.DataFrame({
+    df['Case'][0]: simulation_results[0],
+    df['Case'][1]: simulation_results[1],
+    df['Case'][2]: simulation_results[2]
+})
+
+
+# 5. VISUALIZATION
+
+plt.figure(figsize=(10, 6))
+# Colors adjusted to match physiological/chaos states
+sns.boxplot(data=sim_df, palette=['#1f77b4', '#d62728', '#7f7f7f'])
+
+plt.title('Sensitivity Analysis: Non-Linear IRBI Stability (1,000 Monte Carlo Iterations)', fontsize=14, fontweight='bold')
+plt.ylabel('IRBI Value (0-1)', fontsize=12)
+
+# Stability threshold
+plt.axhline(0.70, color='#2ca02c', linestyle='--', alpha=0.8, label='Stability Corridor Threshold') 
+
+plt.ylim(-0.05, 1)
+plt.legend(loc='center right')
+plt.tight_layout()
+plt.show()
+
+
+# 6. SUMMARY STATISTICS
+
+print("--- FIXED IRBI RESULTS (Geometric) ---")
+print(df[['Case', 'IRBI_Fixed']].to_string(index=False))
+print("\n--- SENSITIVITY ANALYSIS DESCRIPTIVE STATISTICS ---")
+print(sim_df.describe())

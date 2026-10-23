@@ -1,0 +1,92 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+N_DRAWS = 10000
+
+# Base AHP weights
+w_base = np.array([0.312, 0.185, 0.185, 0.185, 0.133])
+
+# Rubric scores (0-4)
+rubric_zeri_iif = np.array([0, 1, 0, 1, 0])
+rubric_zeri_ibief = np.array([4, 4, 3, 4, 4])
+
+rubric_shark_iif = np.array([2, 1, 2, 2, 1])
+rubric_shark_ibief = np.array([3, np.nan, np.nan, 2, 3])
+
+rubric_arch_iif = np.array([4, 4, 3, 4, 4])
+rubric_arch_ibief = np.array([1, np.nan, np.nan, 1, 1])
+
+
+def perturb_rubric(r):
+    noise = np.random.choice([-1, 0, 1], size=r.shape, p=[0.2, 0.6, 0.2])
+    return np.clip(r + noise, 0, 4)
+
+
+def compute_irbi(iif_scores, ibief_scores, w, tau, alpha=0.5, beta=0.5, eps=0.05):
+    iif_norm = np.mean(iif_scores) / 4.0
+    
+    mask = ~np.isnan(ibief_scores)
+    c_active = ibief_scores[mask] / 4.0
+    w_active = w[mask]
+    w_norm = w_active / np.sum(w_active)
+    
+    ibief_geo = np.prod(np.maximum(c_active, eps) ** w_norm)
+    G = 1.0 if iif_norm < tau else 0.0
+    
+    return G * ((1.0 - iif_norm) ** alpha) * (ibief_geo ** beta)
+
+
+irbi_zeri = np.zeros(N_DRAWS)
+irbi_shark = np.zeros(N_DRAWS)
+irbi_arch = np.zeros(N_DRAWS)
+
+for i in range(N_DRAWS):
+    w_draw = np.random.dirichlet(30.0 * w_base)
+    tau_draw = np.random.uniform(0.60, 0.90)
+    
+    # ZERI
+    z_iif = perturb_rubric(rubric_zeri_iif)
+    z_ib = perturb_rubric(rubric_zeri_ibief)
+    irbi_zeri[i] = compute_irbi(z_iif, z_ib, w_draw, tau_draw)
+    
+    # Sharkskin
+    s_iif = perturb_rubric(rubric_shark_iif)
+    s_ib = rubric_shark_ibief.copy()
+    s_ib[~np.isnan(s_ib)] = perturb_rubric(s_ib[~np.isnan(s_ib)])
+    irbi_shark[i] = compute_irbi(s_iif, s_ib, w_draw, tau_draw)
+    
+    # Archetypal
+    a_iif = perturb_rubric(rubric_arch_iif)
+    a_ib = rubric_arch_ibief.copy()
+    a_ib[~np.isnan(a_ib)] = perturb_rubric(a_ib[~np.isnan(a_ib)])
+    irbi_arch[i] = compute_irbi(a_iif, a_ib, w_draw, tau_draw)
+
+# Plot Figure 6
+plt.figure(figsize=(8, 5), dpi=300)
+
+data = [irbi_zeri, irbi_shark, irbi_arch]
+box = plt.boxplot(data, patch_artist=True, widths=0.45,
+                  medianprops=dict(color='black', linewidth=1.2),
+                  whiskerprops=dict(color='#333333', linewidth=1.0),
+                  capprops=dict(color='#333333', linewidth=1.0),
+                  flierprops=dict(marker='o', markersize=2, alpha=0.3))
+
+colors = ['#c89234', '#7aa3be', '#888888']
+for patch, color in zip(box['boxes'], colors):
+    patch.set_facecolor(color)
+    patch.set_alpha(0.85)
+
+plt.axhline(0.70, color='#2e7d32', linestyle='--', linewidth=1.2, 
+            label='Stability threshold (0.70)')
+
+plt.ylabel('IRBI', fontsize=11)
+plt.xticks([1, 2, 3], ['ZERI', 'Sharkskin', 'Archetypal'], fontsize=10)
+plt.yticks(np.arange(0.0, 1.1, 0.2), fontsize=10)
+plt.ylim(-0.05, 1.05)
+plt.grid(axis='y', linestyle=':', alpha=0.6)
+plt.legend(loc='center right', frameon=True, fontsize=9)
+
+plt.tight_layout()
+plt.savefig('Figure_6.png', dpi=300)
+plt.close()

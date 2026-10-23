@@ -1,0 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+
+np.random.seed(11)
+fs = 22.4
+duration = 120.0
+t = np.linspace(0, duration, int(fs * duration))
+
+# 1. Kinematic signals (T0 baseline and T2 loaded)
+f0 = 1.0 / 4.06
+pitch_t0 = np.sin(2 * np.pi * f0 * t) + 0.12 * np.sin(4 * np.pi * f0 * t)
+pitch_t0 += np.random.normal(0, 0.025, len(t))
+
+f2 = 1.0 / 3.15
+pitch_t2 = 1.25 * np.sin(2 * np.pi * f2 * t) + 0.28 * np.sin(4 * np.pi * f2 * t + 0.4)
+jitter = np.cumsum(np.random.normal(0, 0.015, len(t)))
+jitter -= np.linspace(jitter[0], jitter[-1], len(t))
+pitch_t2 += jitter + np.random.normal(0, 0.08, len(t))
+
+# Standardize
+pitch_t0 = (pitch_t0 - np.mean(pitch_t0)) / np.std(pitch_t0)
+pitch_t2 = (pitch_t2 - np.mean(pitch_t2)) / np.std(pitch_t2)
+
+# Delay embedding
+tau = 12
+x_t0, y_t0 = pitch_t0[:-tau], pitch_t0[tau:]
+x_t2, y_t2 = pitch_t2[:-tau], pitch_t2[tau:]
+
+# Peak detection
+peaks_t0, _ = find_peaks(pitch_t0, distance=60, prominence=0.5)
+peak_vals_t0 = pitch_t0[peaks_t0]
+
+peaks_t2, _ = find_peaks(pitch_t2, distance=45, prominence=0.5)
+peak_vals_t2 = pitch_t2[peaks_t2]
+
+# 2. Plotting
+fig, axs = plt.subplots(2, 2, figsize=(10, 8), dpi=300)
+
+def plot_return_steps(ax, p_n, p_np1):
+    for i in range(len(p_n) - 1):
+        ax.plot([p_n[i], p_n[i]], [p_np1[i], p_np1[i + 1]], color='black', alpha=0.25, lw=0.8)
+        ax.plot([p_n[i], p_n[i + 1]], [p_np1[i + 1], p_np1[i + 1]], color='black', alpha=0.25, lw=0.8)
+
+# (a) T0 Phase Space
+axs[0, 0].plot(x_t0[:1500], y_t0[:1500], color='#4a90e2', alpha=0.7, lw=1.2)
+axs[0, 0].set_title('(a) Phase Space: Rested Baseline (T0)', fontsize=11, fontweight='bold')
+axs[0, 0].set_xlabel('State $x(t)$', fontsize=10)
+axs[0, 0].set_ylabel('Delayed State $x(t + \\tau)$', fontsize=10)
+
+# (a) T0 Return Map
+p_n0, p_np1_0 = peak_vals_t0[:-1], peak_vals_t0[1:]
+axs[0, 1].plot([-2, 2], [-2, 2], 'r--', lw=1.2, label='$y = x$')
+axs[0, 1].scatter(p_n0, p_np1_0, color='#004c87', s=25, alpha=0.8, zorder=3, label='Peaks')
+plot_return_steps(axs[0, 1], p_n0, p_np1_0)
+axs[0, 1].set_title('(a) First-Return Map: Rested Baseline (T0)', fontsize=11, fontweight='bold')
+axs[0, 1].set_xlabel('Peak $n$', fontsize=10)
+axs[0, 1].set_ylabel('Peak $n + 1$', fontsize=10)
+axs[0, 1].legend(loc='lower right', frameon=True)
+
+# (b) T2 Phase Space
+axs[1, 0].plot(x_t2[:1500], y_t2[:1500], color='#d9534f', alpha=0.6, lw=1.1)
+axs[1, 0].set_title('(b) Phase Space: Loaded Execution (T2)', fontsize=11, fontweight='bold')
+axs[1, 0].set_xlabel('State $x(t)$', fontsize=10)
+axs[1, 0].set_ylabel('Delayed State $x(t + \\tau)$', fontsize=10)
+
+# (b) T2 Return Map
+p_n2, p_np1_2 = peak_vals_t2[:-1], peak_vals_t2[1:]
+axs[1, 1].plot([-2, 2], [-2, 2], 'r--', lw=1.2, label='$y = x$')
+axs[1, 1].scatter(p_n2, p_np1_2, color='#900c3f', s=25, alpha=0.8, zorder=3, label='Peaks')
+plot_return_steps(axs[1, 1], p_n2, p_np1_2)
+axs[1, 1].set_title('(b) First-Return Map: Loaded Execution (T2)', fontsize=11, fontweight='bold')
+axs[1, 1].set_xlabel('Peak $n$', fontsize=10)
+axs[1, 1].set_ylabel('Peak $n + 1$', fontsize=10)
+axs[1, 1].legend(loc='lower right', frameon=True)
+
+for ax in axs.flat:
+    ax.grid(True, linestyle=':', alpha=0.6)
+    ax.set_xlim(-2.2, 2.2)
+    ax.set_ylim(-2.2, 2.2)
+
+plt.tight_layout()
+plt.savefig('Figure_5.png', dpi=300)
+plt.close()

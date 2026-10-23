@@ -1,6 +1,16 @@
-# Biomimicry-or-Greenwashing-Operationalizing-Authenticity-via-Non-Linear-Dynamics
+# Biomimicry or Greenwashing? Operationalizing Authenticity via Non-Linear Dynamics
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23437410.svg)](https://doi.org/10.5281/zenodo.23437410)[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)This repository contains the replication code, computational state-space observer pipeline, and *in silico* validation scripts for the paper:> **Gerolimos, N., Papageorgiou, G., Papadakis, V., Papakostas, G. A., Priniotakis, G. (2026).
+(https://zenodo.org/badge/DOI/10.5281/zenodo.23437410.svg)](https://doi.org/10.5281/zenodo.23437410)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
+Official computational repository and verification codebase for the manuscript:
+> Biomimicry or Greenwashing? Operationalizing Authenticity via Non-Linear Dynamics 
+> Nikitas Gerolimos, George Papageorgiou, Vassilis Papadakis, George A. Papakostas, Georgios Priniotakis  
+> Department of Industrial Design and Production Engineering, University of West Attica.
 
-This research introduces the IRBI framework to combat biomimetic greenwashing. By utilizing non-linear dynamics, Lyapunov exponents, and Shannon entropy, it mathematically evaluates biomimetic authenticity, transforming qualitative design heuristics into rigorous, quantifiable engineering.
+Overview & Two-Track Architecture
+
+This repository contains the complete algorithmic implementation of the Illusion-Real Biomimicry Index (IRBI):
+Part A (Artefact Evaluation): Evaluates three benchmark systems (ZERI industrial symbiosis, Sharkskin passive riblet surface, Archetypal imitation) through an evidence-based claim ledger (GUM/ JCGM 100:2008), AHP weight matrix renormalization, and a 10,000-draw Monte Carlo uncertainty propagation with a Heaviside veto rule.
+Part B (Kinematic Telemetry Feasibility):Implements state-space reconstruction, Rosenstein maximal Lyapunov divergence (λmax), IAAFT phase-randomized surrogate testing, and Shannon entropy asymmetry (ΔH) on controlled cervical movement time series (N=1).
+

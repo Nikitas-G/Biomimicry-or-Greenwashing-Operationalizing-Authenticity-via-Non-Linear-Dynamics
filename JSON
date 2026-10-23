@@ -1,0 +1,38 @@
+import json
+json_data = """{
+  "version": "1.0.0",
+  "seed": 42,
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v140-x86_64-with-glibc2.39",
+  "numpy": "2.4.4",
+  "pandas": "3.0.2",
+  "config": {
+    "ALPHA": 0.5,
+    "BETA": 0.5,
+    "TAU": 0.75,
+    "EPS": 0.05,
+    "CORRIDOR": 0.7,
+    "K_STEPS": 40,
+    "FIT_A": [
+      0,
+      5
+    ],
+    "FIT_B": [
+      1,
+      10
+    ],
+    "WIN_CYCLES": 5,
+    "MAIN_BINS": 35,
+    "mc": 10000,
+    "surrogates": 99,
+    "boot": 400,
+    "fs_assumed": null
+  },
+  "input_sha256": {
+    "scoring": "9dee9664f87147d676b17066372fdfdc56330c176b2509595a9046848a6a0300"
+  }
+}"""
+
+# Φόρτωση των δεδομένων
+data = json.loads(json_data)
+print("Success!")

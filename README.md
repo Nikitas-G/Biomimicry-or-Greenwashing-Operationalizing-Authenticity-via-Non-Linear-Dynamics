@@ -1,6 +1,6 @@
 # Biomimicry or Greenwashing? Operationalizing Authenticity via Non-Linear Dynamics
 
-(https://zenodo.org/badge/DOI/10.5281/zenodo.23437410.svg)](https://doi.org/10.5281/zenodo.23437410)
+(https://zenodo.org/badge/DOI/10.5281/zenodo.23606824.svg)](https://doi.org/10.5281/zenodo.23606824)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
 Official computational repository and verification codebase for the manuscript:

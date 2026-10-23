@@ -33,6 +33,6 @@ json_data = """{
   }
 }"""
 
-# Φόρτωση των δεδομένων
+# upload data
 data = json.loads(json_data)
 print("Success!")
